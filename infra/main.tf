@@ -54,7 +54,7 @@ resource "aws_iam_role" "lambda_sendemail_role" {
 }
 
 # Política de Permissões para CloudWatch Logs
-resource "aws_iam_policy" "lambda_logging_policy" {
+resource "aws_iam_policy" "lambda_logging_sendemail_policy" {
   name        = "lambda_logging_policy"
   description = "Permissões para Lambdas gravarem nos logs do CloudWatch"
 
@@ -75,7 +75,7 @@ resource "aws_iam_policy" "lambda_logging_policy" {
 }
 
 # Política de Permissão para SQS
-resource "aws_iam_policy" "lambda_sqs_policy" {
+resource "aws_iam_policy" "lambda_sqs_send_policy" {
   name        = "lambda_sqs_policy"
   description = "Permissões para a Lambda acessar a fila SQS"
 
@@ -97,11 +97,11 @@ resource "aws_iam_policy" "lambda_sqs_policy" {
 # Anexar a política de logs à role da Lambda de sendemail
 resource "aws_iam_role_policy_attachment" "sendemail_logging_policy_attachment" {
   role       = aws_iam_role.lambda_sendemail_role.name
-  policy_arn = aws_iam_policy.lambda_logging_policy.arn
+  policy_arn = aws_iam_policy.lambda_logging_sendemail_policy.arn
 }
 
 # Anexar a política de SQS à role da Lambda de sendemail
 resource "aws_iam_role_policy_attachment" "lambda_sqs_policy_attachment" {
   role       = aws_iam_role.lambda_sendemail_role.name
-  policy_arn = aws_iam_policy.lambda_sqs_policy.arn
+  policy_arn = aws_iam_policy.lambda_sqs_send_policy.arn
 }
