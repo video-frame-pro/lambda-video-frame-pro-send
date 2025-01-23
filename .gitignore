@@ -1,0 +1,9 @@
+.idea/.gitignore
+.idea/discord.xml
+.idea/misc.xml
+.idea/vcs.xml
+.idea/*
+.get-pip.py
+srs/*/__pycache__/
+__pycache__/
+*.pyc
