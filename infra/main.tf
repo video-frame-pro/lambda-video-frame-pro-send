@@ -20,8 +20,7 @@ resource "aws_lambda_function" "sendemail" {
 
   environment {
     variables = {
-      cognito_user_pool_id = data.aws_ssm_parameter.brevo_token.value
-      cognito_client_id    = data.aws_ssm_parameter.brevo_token.value
+      brevo_token = data.aws_ssm_parameter.brevo_token.value
     }
   }
 
@@ -55,7 +54,7 @@ resource "aws_iam_role" "lambda_sendemail_role" {
 
 # Política de Permissões para CloudWatch Logs
 resource "aws_iam_policy" "lambda_logging_sendemail_policy" {
-  name        = "lambda_logging_policy"
+  name        = "lambda_logging_sendemail_policy"
   description = "Permissões para Lambdas gravarem nos logs do CloudWatch"
 
   policy = jsonencode({
