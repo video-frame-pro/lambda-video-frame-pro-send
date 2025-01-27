@@ -10,7 +10,7 @@ data "aws_ssm_parameter" "brevo_token" {
   name = "/video-frame-pro/brevo/token"
 }
 
-# Função Lambda para sendemail de Usuário
+# Função Lambda para sendemail de Usuário.
 resource "aws_lambda_function" "sendemail" {
   function_name = var.lambda_sendemail_name
 
