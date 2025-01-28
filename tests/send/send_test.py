@@ -28,10 +28,8 @@ class TestLambdaFunction(TestCase):
 
         # Assertions
         self.assertEqual(response['statusCode'], 200)
-        self.assertEqual(response_body["status"], "SUCCESS")
-        self.assertEqual(response_body["message"], "Email processed successfully.")
-        self.assertEqual(response_body["data"]["email"], "test@example.com")
-        self.assertEqual(response_body["data"]["processingLink"], "http://example.com/download")
+        self.assertEqual(response_body["email"], "test@example.com")
+        self.assertEqual(response_body["processingLink"], "http://example.com/download")
 
     @patch('src.send.send.send_email')
     def test_lambda_handler_error(self, mock_send_email):
@@ -50,9 +48,7 @@ class TestLambdaFunction(TestCase):
 
         # Assertions
         self.assertEqual(response['statusCode'], 200)
-        self.assertEqual(response_body["status"], "SUCCESS")
-        self.assertEqual(response_body["message"], "Email processed successfully.")
-        self.assertEqual(response_body["data"]["email"], "test@example.com")
+        self.assertEqual(response_body["email"], "test@example.com")
 
     def test_lambda_handler_missing_email(self):
         event = {
@@ -67,8 +63,7 @@ class TestLambdaFunction(TestCase):
         response_body = response['body']  # Extrair o corpo da resposta
 
         self.assertEqual(response['statusCode'], 400)
-        self.assertEqual(response_body["status"], "ERROR")
-        self.assertIn("Missing required fields: email", response_body["errors"][0])
+        self.assertIn("Missing required fields: email", response_body["message"])
 
     def test_lambda_handler_missing_processing_link(self):
         event = {
@@ -83,8 +78,7 @@ class TestLambdaFunction(TestCase):
         response_body = response['body']  # Extrair o corpo da resposta
 
         self.assertEqual(response['statusCode'], 400)
-        self.assertEqual(response_body["status"], "ERROR")
-        self.assertIn("'processingLink' is required when 'error' is False.", response_body["errors"][0])
+        self.assertIn("'processingLink' is required when 'error' is False.", response_body["message"])
 
     @patch('src.send.send.urllib.request.urlopen')
     def test_send_email_success(self, mock_urlopen):
