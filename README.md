@@ -1,10 +1,11 @@
+
 <p align="center">
   <img src="https://i.ibb.co/zs1zcs3/Video-Frame.png" width="30%" />
 </p>
 
-
 ---
-Este repositório contém a implementação da **lógica de envio de e-mails** do sistema **Video Frame Pro**, responsável por notificar os usuários sobre o status do processamento de vídeos. 
+
+Este repositório contém a implementação da **lógica de envio de e-mails** do sistema **Video Frame Pro**, responsável por notificar os usuários sobre o status do processamento de vídeos.
 
 ---
 
@@ -22,6 +23,89 @@ A função Lambda envia e-mails baseados no status do processamento:
       <img src="img_error.png" alt="E-mail de erro" width="400">
    </div>
 
+---
+
+## Campos da Requisição
+
+A função Lambda espera um evento com os seguintes campos:
+
+- **email** (obrigatório): O e-mail do destinatário.
+- **processingLink** (obrigatório apenas se "error" for falso): O link para download do vídeo processado.
+- **error** (opcional): Um flag booleano indicando se ocorreu um erro.
+
+### Exemplos de Entrada
+
+#### E-mail de Sucesso
+
+```json
+{
+   "body": {
+      "email": "usuario@email.com",
+      "processingLink": "https://example.com/download.zip",
+      "error": false
+   }
+}
+```
+
+#### E-mail de Erro
+
+```json
+{
+   "body": {
+      "email": "usuario@email.com",
+      "error": true
+   }
+}
+```
+
+---
+
+## Exemplos de Resposta
+
+### Sucesso
+
+```json
+{
+  "statusCode": 200,
+  "body": {
+    "status": "SUCCESS",
+    "message": "Email processed successfully.",
+    "data": {
+      "email": "usuario@email.com",
+      "processingLink": "https://example.com/download.zip"
+    }
+  }
+}
+```
+
+### Erro de Validação
+
+```json
+{
+  "statusCode": 400,
+  "body": {
+    "status": "ERROR",
+    "message": "Validation failed.",
+    "errors": [
+      "'processingLink' is required when 'error' is False."
+    ]
+  }
+}
+```
+
+### Erro Interno
+
+```json
+{
+  "statusCode": 500,
+  "body": {
+    "status": "ERROR",
+    "message": "An unexpected error occurred. Please try again later."
+  }
+}
+```
+
+---
 
 ## Tecnologias
 
@@ -33,17 +117,19 @@ A função Lambda envia e-mails baseados no status do processamento:
   <img src="https://img.shields.io/badge/GitHub-ACTION-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions" />
 </p>
 
+---
+
 ## Estrutura do Repositório
 
 ```
 /src
 ├── send
-│   ├── lambda_function.py        # Lógica de envio de e-mails
+│   ├── send.py        # Lógica de envio de e-mails
 │   ├── requirements.txt          # Dependências do Python
 │   ├── __init__.py               # Inicialização do pacote
 /tests
 ├── send
-│   ├── test_send.py              # Testes unitários para a função de envio de e-mails
+│   ├── send_test.py              # Testes unitários para a função de envio de e-mails
 │   ├── requirements.txt          # Dependências do Python para testes
 │   ├── __init__.py               # Inicialização do pacote para testes
 /infra
@@ -53,28 +139,19 @@ A função Lambda envia e-mails baseados no status do processamento:
 ├── terraform.tfvars              # Arquivo com variáveis de ambiente
 ```
 
-## Como Funciona
-
-1. **E-mail de Sucesso**:
-   - Enviado quando o processamento do vídeo é concluído com sucesso.
-   - Contém o link para download do vídeo processado.
-
-2. **E-mail de Erro**:
-   - Enviado quando ocorre uma falha durante o processamento do vídeo.
-   - Notifica o usuário sobre o problema e oferece suporte.
+---
 
 ## Passos para Configuração
 
-### 1. Pré-Requisitos
+### Pré-Requisitos
 
-Certifique-se de ter as credenciais da AWS configuradas corretamente, além de ter o **AWS CLI** e o **Terraform** instalados.
+1. Configure as credenciais da AWS.
+2. Armazene a chave da API Brevo no SSM Parameter Store como um parâmetro seguro.
 
-### 2. Deploy da Infraestrutura
+### Deploy da Infraestrutura
 
-1. Configure as variáveis no arquivo `terraform.tfvars`:
-    - **brevo_token_ssm**: Nome do parâmetro no SSM que armazena a chave da API Brevo.
-
-2. Execute o **Terraform** para provisionar os recursos na AWS:
+1. No diretório `infra`, configure o arquivo `terraform.tfvars`.
+2. Execute o Terraform:
 
 ```bash
 cd infra
@@ -82,51 +159,7 @@ terraform init
 terraform apply -auto-approve
 ```
 
-Isso criará:
-- A função **Lambda** para envio de e-mails.
-- O **IAM Role** para concessão de permissões à Lambda.
-
-### 3. Configuração da API Brevo
-
-- Gere uma chave de API no **Brevo** (antigo SendinBlue).
-- Armazene essa chave como um parâmetro seguro no AWS Systems Manager Parameter Store.
-
-## Testes
-
-Para testar o envio de e-mails:
-
-1. **E-mail de Sucesso**:
-   - Faça uma requisição POST para a função Lambda com o seguinte payload:
-
-```json
-{
-   "body": {
-      "email": "user@example.com",
-      "processingLink": "https://example.com/download.zip",
-      "error": false
-   }
-}
-```
-ou
-```json
-{
-   "body": {
-      "email": "user@example.com",
-      "processingLink": "https://example.com/download.zip"
-   }
-}
-````
-2. **E-mail de Erro**:
-   - Faça uma requisição POST para a função Lambda com o seguinte payload:
-
-```json
-{
-   "body": {
-      "email": "user@example.com",
-      "error": true
-   }
-}
-```
+---
 
 ### Testes Unitários
 
