@@ -110,7 +110,6 @@ def process_email(data):
         """
         send_email(data, subject, html_content)
         return {
-            "status": "SEND_ERROR",
             "email": data["email"]
         }
     else:
@@ -143,7 +142,6 @@ def process_email(data):
         """
         send_email(data, subject, html_content)
         return {
-            "status": "SEND_SUCCESS",
             "email": data["email"],
             "processingLink": data["processingLink"]
         }
@@ -163,23 +161,34 @@ def lambda_handler(event, context):
         validate_request(body)
 
         # Processar o envio do e-mail
-        response = process_email(body)
+        response_data = process_email(body)
 
-        logger.info(f"Lambda response: {json.dumps(response)}")
         return {
             "statusCode": 200,
-            "body": response
+            "body": {
+                "status": "SUCCESS",
+                "message": "Email processed successfully.",
+                "data": response_data
+            }
         }
 
     except ValueError as ve:
         logger.error(f"Validation error: {ve}")
         return {
             "statusCode": 400,
-            "body": {"error": str(ve)}
+            "body": {
+                "status": "ERROR",
+                "message": "Validation failed.",
+                "errors": [str(ve)]  # Pode ser uma lista de mensagens
+            }
         }
+
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {
             "statusCode": 500,
-            "body": {"error": "Internal server error."}
+            "body": {
+                "status": "ERROR",
+                "message": "An unexpected error occurred. Please try again later."
+            }
         }

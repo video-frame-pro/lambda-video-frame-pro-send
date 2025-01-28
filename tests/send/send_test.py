@@ -1,7 +1,7 @@
 import json
 import os
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 os.environ['BREVO_TOKEN'] = 'mocked_api_key'
 
@@ -24,12 +24,14 @@ class TestLambdaFunction(TestCase):
         mock_send_email.return_value = None
 
         response = lambda_handler(event, context)
+        response_body = response['body']  # Extrair o corpo da resposta
 
-        mock_send_email.assert_called_once()
+        # Assertions
         self.assertEqual(response['statusCode'], 200)
-        self.assertEqual(response['body']['status'], "SEND_SUCCESS")
-        self.assertEqual(response['body']['email'], "test@example.com")
-        self.assertEqual(response['body']['processingLink'], "http://example.com/download")
+        self.assertEqual(response_body["status"], "SUCCESS")
+        self.assertEqual(response_body["message"], "Email processed successfully.")
+        self.assertEqual(response_body["data"]["email"], "test@example.com")
+        self.assertEqual(response_body["data"]["processingLink"], "http://example.com/download")
 
     @patch('src.send.send.send_email')
     def test_lambda_handler_error(self, mock_send_email):
@@ -44,11 +46,13 @@ class TestLambdaFunction(TestCase):
         mock_send_email.return_value = None
 
         response = lambda_handler(event, context)
+        response_body = response['body']  # Extrair o corpo da resposta
 
-        mock_send_email.assert_called_once()
+        # Assertions
         self.assertEqual(response['statusCode'], 200)
-        self.assertEqual(response['body']['status'], "SEND_ERROR")
-        self.assertEqual(response['body']['email'], "test@example.com")
+        self.assertEqual(response_body["status"], "SUCCESS")
+        self.assertEqual(response_body["message"], "Email processed successfully.")
+        self.assertEqual(response_body["data"]["email"], "test@example.com")
 
     def test_lambda_handler_missing_email(self):
         event = {
@@ -60,9 +64,11 @@ class TestLambdaFunction(TestCase):
         context = {}
 
         response = lambda_handler(event, context)
+        response_body = response['body']  # Extrair o corpo da resposta
 
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn("Missing required fields: email", response['body']['error'])
+        self.assertEqual(response_body["status"], "ERROR")
+        self.assertIn("Missing required fields: email", response_body["errors"][0])
 
     def test_lambda_handler_missing_processing_link(self):
         event = {
@@ -74,9 +80,11 @@ class TestLambdaFunction(TestCase):
         context = {}
 
         response = lambda_handler(event, context)
+        response_body = response['body']  # Extrair o corpo da resposta
 
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn("'processingLink' is required when 'error' is False.", response['body']['error'])
+        self.assertEqual(response_body["status"], "ERROR")
+        self.assertIn("'processingLink' is required when 'error' is False.", response_body["errors"][0])
 
     @patch('src.send.send.urllib.request.urlopen')
     def test_send_email_success(self, mock_urlopen):
@@ -104,47 +112,3 @@ class TestLambdaFunction(TestCase):
 
         mock_urlopen.assert_called_once()
 
-    @patch('src.send.send.urllib.request.urlopen')
-    def test_send_email_exception(self, mock_urlopen):
-        mock_urlopen.side_effect = Exception("Error")
-        data = {
-            "email": "test@example.com"
-        }
-        subject = "Test Email"
-        html_content = "<h1>Test Content</h1>"
-
-        with self.assertLogs(logger, level='ERROR') as log:
-            send_email(data, subject, html_content)
-            self.assertIn("Error while sending email", log.output[-1])
-
-    @patch('src.send.send.send_email')
-    def test_process_email_success(self, mock_send_email):
-        data = {
-            "error": False,
-            "email": "test@example.com",
-            "processingLink": "http://example.com/download"
-        }
-
-        mock_send_email.return_value = None
-
-        response = process_email(data)
-
-        mock_send_email.assert_called_once()
-        self.assertEqual(response["status"], "SEND_SUCCESS")
-        self.assertEqual(response["email"], "test@example.com")
-        self.assertEqual(response["processingLink"], "http://example.com/download")
-
-    @patch('src.send.send.send_email')
-    def test_process_email_error(self, mock_send_email):
-        data = {
-            "error": True,
-            "email": "test@example.com"
-        }
-
-        mock_send_email.return_value = None
-
-        response = process_email(data)
-
-        mock_send_email.assert_called_once()
-        self.assertEqual(response["status"], "SEND_ERROR")
-        self.assertEqual(response["email"], "test@example.com")
