@@ -1,12 +1,8 @@
-import json
 import os
-import sys
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
 os.environ['BREVO_TOKEN'] = 'mocked_api_key'
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 from src.send.send import lambda_handler, send_email_error, send_email_success
 
