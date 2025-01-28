@@ -68,12 +68,8 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 200,
   "body": {
-    "status": "SUCCESS",
-    "message": "Email processed successfully.",
-    "data": {
-      "email": "usuario@email.com",
-      "processingLink": "https://example.com/download.zip"
-    }
+    "email": "usuario@email.com",
+    "processingLink": "https://example.com/download.zip"
   }
 }
 ```
@@ -84,11 +80,7 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 400,
   "body": {
-    "status": "ERROR",
-    "message": "Validation failed.",
-    "errors": [
-      "'processingLink' is required when 'error' is False."
-    ]
+    "message": "'processingLink' is required when 'error' is False."
   }
 }
 ```
@@ -99,7 +91,6 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 500,
   "body": {
-    "status": "ERROR",
     "message": "An unexpected error occurred. Please try again later."
   }
 }
