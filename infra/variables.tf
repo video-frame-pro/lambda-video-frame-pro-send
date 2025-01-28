@@ -1,24 +1,34 @@
-# Região da AWS
+######### PREFIXO DO PROJETO ###########################################
+variable "prefix_name" {
+  description = "Prefixo para nomear todos os recursos do projeto"
+}
+
+######### AWS INFOS ####################################################
 variable "aws_region" {
-  description = "Região onde os recursos serão provisionados"
-  type        = string
-  default     = "us-east-1"
+  description = "Região AWS onde os recursos serão provisionados"
 }
 
-# Nome da Lambda de sendemail
-variable "lambda_sendemail_name" {
-  description = "Nome da função Lambda de registro"
-  type        = string
+######### PROJECT INFOS ################################################
+variable "lambda_name" {
+  description = "Nome da função Lambda principal"
 }
 
-# Tempo de retenção dos logs
+variable "lambda_handler" {
+  description = "Handler da função Lambda principal"
+}
+
+variable "lambda_zip_path" {
+  description = "Caminho para o pacote ZIP contendo o código da função Lambda"
+}
+
+variable "lambda_runtime" {
+  description = "Runtime da função Lambda principal"
+}
+######### LOGS CLOUD WATCH #############################################
 variable "log_retention_days" {
-  description = "Número de dias para reter logs no CloudWatch"
-  default     = 7
+  description = "Número de dias para retenção dos logs no CloudWatch"
 }
-
-# Nome da fila SQS
-variable "sqs_queue_name" {
-  description = "Nome da fila SQS"
-  type        = string
+######### SSM VARIABLES INFOS ##########################################
+variable "brevo_token_ssm" {
+  description = "Caminho no SSM para o Token do Brevo"
 }
