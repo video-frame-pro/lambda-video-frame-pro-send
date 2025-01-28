@@ -16,6 +16,16 @@ BREVO_TOKEN = os.environ["BREVO_TOKEN"]
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+def create_response(status_code, message=None, data=None):
+    """
+    Gera uma resposta formatada.
+    """
+    response = {"statusCode": status_code, "body": {}}
+    if message:
+        response["body"]["message"] = message
+    if data:
+        response["body"].update(data)
+    return response
 
 def normalize_body(event):
     """
@@ -27,7 +37,6 @@ def normalize_body(event):
         return event["body"]  # Já está em formato de dicionário
     else:
         raise ValueError("Request body is missing or invalid.")
-
 
 def validate_request(body):
     """
@@ -68,7 +77,6 @@ def send_email(data, subject, html_content):
                 logger.error(f"Failed to send email. HTTP Status: {response.status}")
     except urllib.error.URLError as e:
         logger.error(f"Error while sending email: {e}")
-
 
 def process_email(data):
     """
@@ -146,7 +154,6 @@ def process_email(data):
             "processingLink": data["processingLink"]
         }
 
-
 def lambda_handler(event, context):
     """
     Entrada principal da Lambda.
@@ -163,32 +170,12 @@ def lambda_handler(event, context):
         # Processar o envio do e-mail
         response_data = process_email(body)
 
-        return {
-            "statusCode": 200,
-            "body": {
-                "status": "SUCCESS",
-                "message": "Email processed successfully.",
-                "data": response_data
-            }
-        }
+        return create_response(200, data=response_data)
 
     except ValueError as ve:
         logger.error(f"Validation error: {ve}")
-        return {
-            "statusCode": 400,
-            "body": {
-                "status": "ERROR",
-                "message": "Validation failed.",
-                "errors": [str(ve)]  # Pode ser uma lista de mensagens
-            }
-        }
+        return create_response(400, message=str(ve))
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
-        return {
-            "statusCode": 500,
-            "body": {
-                "status": "ERROR",
-                "message": "An unexpected error occurred. Please try again later."
-            }
-        }
+        return create_response(500, message="An unexpected error occurred. Please try again later.")
