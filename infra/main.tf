@@ -1,107 +1,77 @@
+######### PROVEDOR AWS #################################################
+# Configuração do provedor AWS
 provider "aws" {
   region = var.aws_region
 }
 
+######### DADOS AWS ####################################################
 # Obter informações sobre a conta AWS (ID da conta, ARN, etc.)
 data "aws_caller_identity" "current" {}
 
-# Recuperar valores do SSM
+# Obter o Token do Brevo no SSM
 data "aws_ssm_parameter" "brevo_token" {
-  name = "/video-frame-pro/brevo/token"
+  name = var.brevo_token_ssm
 }
 
-# Função Lambda para sendemail de Usuário
-resource "aws_lambda_function" "sendemail" {
-  function_name = var.lambda_sendemail_name
+######### FUNÇÃO LAMBDA ###############################################
+# Função Lambda principal
+resource "aws_lambda_function" "lambda_function" {
+  function_name = "${var.prefix_name}-${var.lambda_name}-lambda"
+  handler       = var.lambda_handler
+  runtime       = var.lambda_runtime
+  role          = aws_iam_role.lambda_role.arn
+  filename      = var.lambda_zip_path
+  source_code_hash = filebase64sha256(var.lambda_zip_path)
 
-  handler = "sendemail.lambda_handler"
-  runtime = "python3.8"
-  role    = aws_iam_role.lambda_sendemail_role.arn
-
+  # Variáveis de ambiente para a Lambda
   environment {
     variables = {
-      cognito_user_pool_id = data.aws_ssm_parameter.brevo_token.value
-      cognito_client_id    = data.aws_ssm_parameter.brevo_token.value
+      BREVO_TOKEN = data.aws_ssm_parameter.brevo_token.value
     }
   }
-
-  filename         = "../lambda/sendemail/sendemail_lambda_function.zip"
-  source_code_hash = filebase64sha256("../lambda/sendemail/sendemail_lambda_function.zip")
 }
 
-
-resource "aws_cloudwatch_log_group" "lambda_sendemail_log_group" {
-  name              = "/aws/lambda/${aws_lambda_function.sendemail.function_name}"
+######### GRUPO DE LOGS ###############################################
+# Grupo de logs no CloudWatch para a Lambda
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name              = "/aws/lambda/${var.prefix_name}-${var.lambda_name}-lambda"
   retention_in_days = var.log_retention_days
 }
 
-# Role para Lambda de sendemail
-resource "aws_iam_role" "lambda_sendemail_role" {
-  name = "lambda_sendemail_role"
+######### IAM: FUNÇÃO LAMBDA ##########################################
+# Role IAM para a Lambda principal
+resource "aws_iam_role" "lambda_role" {
+  name = "${var.prefix_name}-${var.lambda_name}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Effect = "Allow",
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
   })
 }
 
-# Política de Permissões para CloudWatch Logs
-resource "aws_iam_policy" "lambda_logging_policy" {
-  name        = "lambda_logging_policy"
-  description = "Permissões para Lambdas gravarem nos logs do CloudWatch"
+# Política de permissões para a Lambda principal
+resource "aws_iam_policy" "lambda_policy" {
+  name = "${var.prefix_name}-${var.lambda_name}-policy"
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
+        # Permissões para logs no CloudWatch
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
         Effect   = "Allow",
-        Action   = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
       }
     ]
   })
 }
 
-# Política de Permissão para SQS
-resource "aws_iam_policy" "lambda_sqs_policy" {
-  name        = "lambda_sqs_policy"
-  description = "Permissões para a Lambda acessar a fila SQS"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect   = "Allow",
-        Action   = [
-          "sqs:ReceiveMessage",
-          "sqs:GetQueueAttributes"
-        ],
-        Resource = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.sqs_queue_name}"
-      }
-    ]
-  })
-}
-
-# Anexar a política de logs à role da Lambda de sendemail
-resource "aws_iam_role_policy_attachment" "sendemail_logging_policy_attachment" {
-  role       = aws_iam_role.lambda_sendemail_role.name
-  policy_arn = aws_iam_policy.lambda_logging_policy.arn
-}
-
-# Anexar a política de SQS à role da Lambda de sendemail
-resource "aws_iam_role_policy_attachment" "lambda_sqs_policy_attachment" {
-  role       = aws_iam_role.lambda_sendemail_role.name
-  policy_arn = aws_iam_policy.lambda_sqs_policy.arn
+# Anexar a política de permissões à role da Lambda
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
 }
