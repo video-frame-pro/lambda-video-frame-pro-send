@@ -3,10 +3,11 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
+# Definir variáveis de ambiente mockadas
 os.environ['BREVO_TOKEN'] = 'mocked_api_key'
 
+# Importar a Lambda após definir variáveis de ambiente
 from src.send.send import lambda_handler, process_email, send_email, logger
-
 
 class TestLambdaFunction(TestCase):
 
