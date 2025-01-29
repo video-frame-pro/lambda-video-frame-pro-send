@@ -47,10 +47,9 @@ def validate_request(body):
     if missing_fields:
         raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
 
-    # Valida 'processingLink' caso 'error' seja False
-    if not body.get("error", False) and "processingLink" not in body:
-        raise ValueError("'processingLink' is required when 'error' is False.")
-
+    # Valida 'frame_url' caso 'error' seja False
+    if not body.get("error", False) and "frame_url" not in body:
+        raise ValueError("'frame_url' is required when 'error' is False.")
 
 def send_email(data, subject, html_content):
     """
@@ -136,7 +135,7 @@ def process_email(data):
                             <td style="padding: 20px; text-align: center;">
                                 <h1 style="color: #4caf50;">Your video is ready!</h1>
                                 <p style="font-size: 16px; color: #555;">Click the button below to download your processed video:</p>
-                                <a href="{data['processingLink']}" style="background-color: #4caf50; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Download Video</a>
+                                <a href="{data['frame_url']}" style="background-color: #4caf50; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Download Video</a>
                             </td>
                         </tr>
                         <tr>
@@ -151,7 +150,7 @@ def process_email(data):
         send_email(data, subject, html_content)
         return {
             "email": data["email"],
-            "processingLink": data["processingLink"]
+            "frame_url": data["frame_url"]
         }
 
 def lambda_handler(event, context):

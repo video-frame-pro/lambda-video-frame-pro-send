@@ -30,7 +30,7 @@ A função Lambda envia e-mails baseados no status do processamento:
 A função Lambda espera um evento com os seguintes campos:
 
 - **email** (obrigatório): O e-mail do destinatário.
-- **processingLink** (obrigatório apenas se "error" for falso): O link para download do vídeo processado.
+- **frame_url** (obrigatório apenas se "error" for falso): O link para download do vídeo processado.
 - **error** (opcional): Um flag booleano indicando se ocorreu um erro.
 
 ### Exemplos de Entrada
@@ -41,7 +41,7 @@ A função Lambda espera um evento com os seguintes campos:
 {
    "body": {
       "email": "usuario@email.com",
-      "processingLink": "https://example.com/download.zip",
+      "frame_url": "https://example.com/download.zip",
       "error": false
    }
 }
@@ -68,12 +68,8 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 200,
   "body": {
-    "status": "SUCCESS",
-    "message": "Email processed successfully.",
-    "data": {
       "email": "usuario@email.com",
-      "processingLink": "https://example.com/download.zip"
-    }
+      "frame_url": "https://example.com/download.zip"
   }
 }
 ```
@@ -84,11 +80,7 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 400,
   "body": {
-    "status": "ERROR",
-    "message": "Validation failed.",
-    "errors": [
-      "'processingLink' is required when 'error' is False."
-    ]
+    "message": "Validation failed."
   }
 }
 ```
@@ -99,7 +91,6 @@ A função Lambda espera um evento com os seguintes campos:
 {
   "statusCode": 500,
   "body": {
-    "status": "ERROR",
     "message": "An unexpected error occurred. Please try again later."
   }
 }
