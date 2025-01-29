@@ -1,1 +1,2 @@
-boto3==1.26.19
+boto3==1.36.7        # Necessário para interagir com AWS S3 (upload de vídeos)
+botocore==1.36.7     # Backend utilizado pelo boto3

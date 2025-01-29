@@ -15,7 +15,7 @@ class TestLambdaFunction(TestCase):
         event = {
             "body": json.dumps({
                 "error": False,
-                "processingLink": "http://example.com/download",
+                "frame_url": "http://example.com/download",
                 "email": "test@example.com"
             })
         }
@@ -29,7 +29,7 @@ class TestLambdaFunction(TestCase):
         # Assertions
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response_body["email"], "test@example.com")
-        self.assertEqual(response_body["processingLink"], "http://example.com/download")
+        self.assertEqual(response_body["frame_url"], "http://example.com/download")
 
     @patch('src.send.send.send_email')
     def test_lambda_handler_error(self, mock_send_email):
@@ -54,7 +54,7 @@ class TestLambdaFunction(TestCase):
         event = {
             "body": json.dumps({
                 "error": False,
-                "processingLink": "http://example.com/download"
+                "frame_url": "http://example.com/download"
             })
         }
         context = {}
@@ -78,7 +78,7 @@ class TestLambdaFunction(TestCase):
         response_body = response['body']  # Extrair o corpo da resposta
 
         self.assertEqual(response['statusCode'], 400)
-        self.assertIn("'processingLink' is required when 'error' is False.", response_body["message"])
+        self.assertIn("'frame_url' is required when 'error' is False.", response_body["message"])
 
     @patch('src.send.send.urllib.request.urlopen')
     def test_send_email_success(self, mock_urlopen):
