@@ -114,7 +114,7 @@ A função Lambda espera um evento com os seguintes campos:
 ```
 /src
 ├── send
-│   ├── send.py        # Lógica de envio de e-mails
+│   ├── send.py                   # Lógica de envio de e-mails
 │   ├── requirements.txt          # Dependências do Python
 │   ├── __init__.py               # Inicialização do pacote
 /tests
