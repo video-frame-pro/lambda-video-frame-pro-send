@@ -162,7 +162,6 @@ coverage run -m unittest discover -s tests -p '*_test.py'
 coverage report -m
 coverage html  
 ```
-
 ## Licença
 
 Este projeto está licenciado sob a **MIT License**. Consulte o arquivo LICENSE para mais detalhes.
