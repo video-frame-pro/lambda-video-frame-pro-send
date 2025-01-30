@@ -173,8 +173,27 @@ def lambda_handler(event, context):
 
     except ValueError as ve:
         logger.error(f"Validation error: {ve}")
+
+        try:
+            # Tenta enviar o e-mail de erro
+            logger.info("Attempting to send failure email due to an exception.")
+            body["error"] = True  # Define explicitamente error como True
+            process_email(body)  # Chama a função novamente
+        except Exception as email_error:
+            logger.error(f"Failed to send error email: {email_error}")
+
         return create_response(400, message=str(ve))
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
+
+        try:
+            # Tenta enviar o e-mail de erro
+            logger.info("Attempting to send failure email due to an exception.")
+            body["error"] = True  # Define explicitamente error como True
+            process_email(body)  # Chama a função novamente
+        except Exception as email_error:
+            logger.error(f"Failed to send error email: {email_error}")
+
         return create_response(500, message="An unexpected error occurred. Please try again later.")
+
