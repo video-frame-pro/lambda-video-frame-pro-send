@@ -175,10 +175,16 @@ def lambda_handler(event, context):
         logger.error(f"Validation error: {ve}")
 
         try:
+            # Garante que email e frame_url tenham um valor válido antes de reenviar o e-mail
+            body.setdefault("email", "nao preenchido")
+            body.setdefault("frame_url", "nao preenchido")
+
+            # Define explicitamente error como True
+            body["error"] = True
+
             # Tenta enviar o e-mail de erro
-            logger.info("Attempting to send failure email due to an exception.")
-            body["error"] = True  # Define explicitamente error como True
-            process_email(body)  # Chama a função novamente
+            logger.info("Attempting to send failure email due to a validation error.")
+            process_email(body)
         except Exception as email_error:
             logger.error(f"Failed to send error email: {email_error}")
 
@@ -188,10 +194,16 @@ def lambda_handler(event, context):
         logger.error(f"Unexpected error: {e}")
 
         try:
+            # Garante que email e frame_url tenham um valor válido antes de reenviar o e-mail
+            body.setdefault("email", "nao preenchido")
+            body.setdefault("frame_url", "nao preenchido")
+
+            # Define explicitamente error como True
+            body["error"] = True
+
             # Tenta enviar o e-mail de erro
             logger.info("Attempting to send failure email due to an exception.")
-            body["error"] = True  # Define explicitamente error como True
-            process_email(body)  # Chama a função novamente
+            process_email(body)
         except Exception as email_error:
             logger.error(f"Failed to send error email: {email_error}")
 
