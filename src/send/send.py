@@ -208,4 +208,3 @@ def lambda_handler(event, context):
             logger.error(f"Failed to send error email: {email_error}")
 
         return create_response(500, message="An unexpected error occurred. Please try again later.")
-

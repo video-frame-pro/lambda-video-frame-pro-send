@@ -107,3 +107,69 @@ class TestLambdaFunction(TestCase):
 
         mock_urlopen.assert_called_once()
 
+
+    @patch('src.send.send.process_email', side_effect=Exception("Simulated unexpected error"))
+    def test_lambda_handler_unexpected_error(self, mock_process_email):
+        """
+        Testa se a Lambda lida corretamente com erros inesperados e retorna statusCode 500.
+        """
+
+        event = {
+            "body": json.dumps({
+                "error": False,
+                "frame_url": "http://example.com/download",
+                "email": "test@example.com"
+            })
+        }
+        context = {}
+
+        response = lambda_handler(event, context)
+        response_body = response["body"]  # Extrair o corpo da resposta
+
+        # Assertions
+        self.assertEqual(response["statusCode"], 500)
+        self.assertIn("An unexpected error occurred", response_body["message"])
+
+    @patch('src.send.send.process_email', side_effect=Exception("Simulated unexpected error"))
+    @patch('src.send.send.logger.error')
+    def test_lambda_handler_unexpected_error_logs(self, mock_logger_error, mock_process_email):
+        """
+        Testa se a Lambda loga corretamente um erro inesperado.
+        """
+
+        event = {
+            "body": json.dumps({
+                "error": False,
+                "frame_url": "http://example.com/download",
+                "email": "test@example.com"
+            })
+        }
+        context = {}
+
+        lambda_handler(event, context)
+
+        # Verifica se o logger foi chamado para registrar o erro
+        mock_logger_error.assert_any_call("Unexpected error: Simulated unexpected error")
+
+    @patch('src.send.send.process_email', side_effect=Exception("Simulated unexpected error"))
+    @patch('src.send.send.process_email', side_effect=Exception("Simulated email send failure"))
+    def test_lambda_handler_fails_sending_error_email(self, mock_process_email, mock_process_email_failure):
+        """
+        Testa se a Lambda lida corretamente com falhas ao tentar enviar o e-mail de erro.
+        """
+
+        event = {
+            "body": json.dumps({
+                "error": False,
+                "frame_url": "http://example.com/download",
+                "email": "test@example.com"
+            })
+        }
+        context = {}
+
+        response = lambda_handler(event, context)
+        response_body = response["body"]  # Extrair o corpo da resposta
+
+        # Assertions
+        self.assertEqual(response["statusCode"], 500)
+        self.assertIn("An unexpected error occurred", response_body["message"])
